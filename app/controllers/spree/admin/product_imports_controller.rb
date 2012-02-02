@@ -4,7 +4,7 @@ class Spree::Admin::ProductImportsController < Spree::Admin::BaseController
   #Feel free to refactor and submit a pull request.
   
   def index
-    redirect_to :new
+    redirect_to :action => :new
   end
   
   def new
@@ -16,6 +16,6 @@ class Spree::Admin::ProductImportsController < Spree::Admin::BaseController
     @product_import = ProductImport.create(params[:product_import])
     Delayed::Job.enqueue ImportProducts::ImportJob.new(@product_import, @current_user)
     flash[:notice] = t('product_import_processing')
-    redirect_to :new
+    redirect_to :action => :new
   end
 end
