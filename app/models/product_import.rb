@@ -22,7 +22,7 @@ class ProductImport < ActiveRecord::Base
   def import_data!
     begin
       #Get products *before* import -
-      @products_before_import = Product.all
+      @products_before_import = Spree::Product.all
       @names_of_products_before_import = @products_before_import.map(&:name)
 
       rows = CSV.read(self.data_file.path)
@@ -309,8 +309,8 @@ class ProductImport < ActiveRecord::Base
     #Using find_or_create_by_name is more elegant, but our magical params code automatically downcases
     # the taxonomy name, so unless we are using MySQL, this isn't going to work.
     taxonomy_name = taxonomy
-    taxonomy = Taxonomy.find(:first, :conditions => ["lower(name) = ?", taxonomy])
-    taxonomy = Taxonomy.create(:name => taxonomy_name.capitalize) if taxonomy.nil? && IMPORT_PRODUCT_SETTINGS[:create_missing_taxonomies]
+    taxonomy = Spree::Taxonomy.find(:first, :conditions => ["lower(name) = ?", taxonomy])
+    taxonomy = Spree::Taxonomy.create(:name => taxonomy_name.capitalize) if taxonomy.nil? && IMPORT_PRODUCT_SETTINGS[:create_missing_taxonomies]
 
     taxon_hierarchy.split(/\s*\&\s*/).each do |hierarchy|
       hierarchy = hierarchy.split(/\s*>\s*/)
