@@ -57,8 +57,8 @@ class ProductImport < ActiveRecord::Base
         variant_comparator_column = col[variant_comparator_field]
 
         if IMPORT_PRODUCT_SETTINGS[:create_variants] and variant_comparator_column and
-            p = Spree::Product.where(variant_comparator_field => row[variant_comparator_column]).first 
-                     
+            p = Spree::Product.where(variant_comparator_field => row[variant_comparator_column]).first
+
           log("found product with this field #{variant_comparator_field}=#{row[variant_comparator_column]}")
           p.update_attribute(:deleted_at, nil) if p.deleted_at #Un-delete product if it is there
           p.variants.each { |variant| variant.update_attribute(:deleted_at, nil) }
@@ -94,7 +94,15 @@ class ProductImport < ActiveRecord::Base
   # size/color options
   def create_variant_for(product, options = {:with => {}})
     return if options[:with].nil?
-    variant = product.variants.new
+
+    # Just update variant if exists
+    variant = Spree::Variant.find_by_sku(options[:with][:sku])
+    if !variant
+      product.variants.new
+      variant.id = options[:with][:id]
+    else
+      options[:with].delete(:id)
+    end
 
     field = IMPORT_PRODUCT_SETTINGS[:variant_comparator_field]
     log  "VARIANT:: #{variant.inspect}  /// #{options.inspect } /// #{options[:with][field]} /// #{field}"
@@ -103,7 +111,6 @@ class ProductImport < ActiveRecord::Base
     #variant has price and cost_price.
     options[:with][:price] = options[:with].delete(:master_price)
 
-    options[:with].delete(:id)
     #First, set the primitive fields on the object (prices, etc.)
     options[:with].each do |field, value|
       variant.send("#{field}=", value) if variant.respond_to?("#{field}=")
