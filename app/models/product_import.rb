@@ -96,13 +96,15 @@ class ProductImport < ActiveRecord::Base
     return if options[:with].nil?
 
     # Just update variant if exists
-    variant = Spree::Variant.find_by_sku(options[:with][:sku])
-    if !variant
-      variant = product.variants.new
-      variant.id = options[:with][:id]
-    else
-      options[:with].delete(:id)
-    end
+   
+      variant = Spree::Variant.find_by_sku(options[:with][:sku])
+      if !variant
+        variant =   product.variants.new
+        variant.id = options[:with][:id]
+      else
+        options[:with].delete(:id)
+      end
+    
 
     field = IMPORT_PRODUCT_SETTINGS[:variant_comparator_field]
     log  "VARIANT:: #{variant.inspect}  /// #{options.inspect } /// #{options[:with][field]} /// #{field}"
@@ -113,17 +115,17 @@ class ProductImport < ActiveRecord::Base
 
     #First, set the primitive fields on the object (prices, etc.)
     options[:with].each do |field, value|
-      variant.send("#{field}=", value) if variant.respond_to?("#{field}=")
-      applicable_option_type = Spree::OptionType.find(:first, :conditions => [
-        "lower(presentation) = ? OR lower(name) = ?",
-        field.to_s, field.to_s]
-      )
-      if applicable_option_type.is_a?(Spree::OptionType)
-        product.option_types << applicable_option_type unless product.option_types.include?(applicable_option_type)
-        variant.option_values << applicable_option_type.option_values.find(
-          :all,
-          :conditions => ["presentation = ? OR name = ?", value, value]
+        variant.send("#{field}=", value) if variant.respond_to?("#{field}=")
+        applicable_option_type = Spree::OptionType.find(:first, :conditions => [
+          "lower(presentation) = ? OR lower(name) = ?",
+          field.to_s, field.to_s]
         )
+        if applicable_option_type.is_a?(Spree::OptionType)
+          product.option_types << applicable_option_type unless product.option_types.include?(applicable_option_type)
+          variant.option_values << applicable_option_type.option_values.find(
+            :all,
+            :conditions => ["presentation = ? OR name = ?", value, value]
+          )
       end
     end
 
@@ -158,6 +160,8 @@ class ProductImport < ActiveRecord::Base
   # It also logs throughout the method to try and give some indication of process.
   def create_product_using(params_hash)
     product = Spree::Product.new
+    
+    params_hash[:sku] = "" if params_hash[:sku].nil?
 
     #The product is inclined to complain if we just dump all params
     # into the product (including images and taxonomies).
@@ -186,7 +190,8 @@ class ProductImport < ActiveRecord::Base
     else
       #Save the object before creating asssociated objects
       product.save
-
+      
+     
 
       #Associate our new product with any taxonomies that we need to worry about
       IMPORT_PRODUCT_SETTINGS[:taxonomy_fields].each do |field|
@@ -209,6 +214,7 @@ class ProductImport < ActiveRecord::Base
           )
 
           product.stores << store
+          
         rescue
           log("#{product.name} could not be associated with a store. Ensure that Spree's multi_domain extension is installed and that fields are mapped to the CSV correctly.")
         end
