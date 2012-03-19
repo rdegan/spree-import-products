@@ -98,7 +98,7 @@ class ProductImport < ActiveRecord::Base
     # Just update variant if exists
     variant = Spree::Variant.find_by_sku(options[:with][:sku])
     if !variant
-      product.variants.new
+      variant = product.variants.new
       variant.id = options[:with][:id]
     else
       options[:with].delete(:id)
