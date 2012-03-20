@@ -59,7 +59,7 @@ class ProductImport < ActiveRecord::Base
         if IMPORT_PRODUCT_SETTINGS[:create_variants] and variant_comparator_column and
             p = Spree::Product.where(variant_comparator_field => row[variant_comparator_column]).first
           log("found product with this field #{variant_comparator_field}=#{row[variant_comparator_column]}")
-          p.update_attribute(:deleted_at, nil) if p.deleted_at #Un-delete product if it is there
+          p.update_attribute(:deleted_at, nil) if p.deleted_at #Un-delete product if it is theregi
           Spree::Variant.where(:product_id => p.id).each { |variant| variant.update_attribute(:deleted_at, nil) }
           create_variant_for(p, :with => product_information) unless product_information[:sku].nil? &&  product_information[:sku].blank?
         else
@@ -101,7 +101,7 @@ class ProductImport < ActiveRecord::Base
         variant =   product.variants.new
         variant.id = options[:with][:id]
       else
-        options[:with].delete(:id)
+        options[:with].delete(:id)        
       end
     
 
@@ -121,10 +121,12 @@ class ProductImport < ActiveRecord::Base
         )
         if applicable_option_type.is_a?(Spree::OptionType)
           product.option_types << applicable_option_type unless product.option_types.include?(applicable_option_type)
-          variant.option_values << applicable_option_type.option_values.find(
+          option_value = applicable_option_type.option_values.find(
             :all,
             :conditions => ["presentation = ? OR name = ?", value, value]
-          )
+          ).first
+          
+          variant.option_values << option_value unless variant.option_values.include?(option_value)
       end
     end
 
