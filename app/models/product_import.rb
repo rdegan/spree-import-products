@@ -57,12 +57,11 @@ class ProductImport < ActiveRecord::Base
         variant_comparator_column = col[variant_comparator_field]
 
         if IMPORT_PRODUCT_SETTINGS[:create_variants] and variant_comparator_column and
-            p = Spree::Product.where(variant_comparator_field => row[variant_comparator_column], :deleted_at => nil).first
-
+            p = Spree::Product.where(variant_comparator_field => row[variant_comparator_column]).first
           log("found product with this field #{variant_comparator_field}=#{row[variant_comparator_column]}")
           p.update_attribute(:deleted_at, nil) if p.deleted_at #Un-delete product if it is there
-          p.variants.each { |variant| variant.update_attribute(:deleted_at, nil) }
-          create_variant_for(p, :with => product_information)
+          Spree::Variant.where(:product_id => p.id).each { |variant| variant.update_attribute(:deleted_at, nil) }
+          create_variant_for(p, :with => product_information) unless product_information[:sku].nil? &&  product_information[:sku].blank?
         else
           next unless create_product_using(product_information)
         end
