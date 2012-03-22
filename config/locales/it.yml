@@ -1,0 +1,8 @@
+it:
+  product_import_processing: "Grazie, il tuo import è stato aggiunto alla coda per essere processato. Riceverai una mail quando l'import sarà complentato"
+  product_imports: 'Importa prodotti'
+  form:
+    product_import:
+      heading: 'Importa prodotti da CSV'
+      new:
+        data_file: "File CSV"
